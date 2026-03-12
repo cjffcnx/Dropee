@@ -1,6 +1,5 @@
 const HistoryModel = require('../model/historyModel');
-const { BASE_URL } = require('../config/secrets');
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+const { getFrontendBaseUrl } = require('../utils/url');
 
 const getHistory = async (req, res) => {
   try {
@@ -13,6 +12,7 @@ const getHistory = async (req, res) => {
     const history = await HistoryModel.find({ userId })
       .sort({ createdAt: -1 })
       .limit(50);
+    const frontendBaseUrl = getFrontendBaseUrl(req);
 
     const historyWithLinks = history.map((entry) => ({
       _id: entry._id,
@@ -21,8 +21,8 @@ const getHistory = async (req, res) => {
       createdAt: entry.createdAt,
       link:
         entry.type === 'file'
-          ? `${FRONTEND_URL}/${entry.refId}`
-          : `${FRONTEND_URL}/snippet/${entry.refId}`,
+          ? `${frontendBaseUrl}/${entry.refId}`
+          : `${frontendBaseUrl}/snippet/${entry.refId}`,
     }));
 
     return res.status(200).json({ status: 200, history: historyWithLinks });

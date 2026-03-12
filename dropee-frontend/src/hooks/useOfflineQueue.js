@@ -49,6 +49,7 @@ const useOfflineQueue = (onSuccess) => {
         try {
           const formData = new FormData();
           formData.append('userId', item.userId);
+          if (item.shareTitle) formData.append('shareTitle', item.shareTitle);
           if (item.email) formData.append('email', item.email);
           if (item.phone) formData.append('phone', item.phone);
           item.files.forEach((file) => formData.append('files', file));

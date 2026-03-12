@@ -10,6 +10,17 @@ const historyRoute = require('./route/historyRoute');
 const { getFilesByUserId, downloadFile } = require('./controller/fileController');
 
 const app = express();
+app.set('trust proxy', 1);
+
+const normalizeOrigin = (value = '') => value.replace(/\/+$/, '');
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  ...(process.env.FRONTEND_URL || '')
+    .split(',')
+    .map((origin) => normalizeOrigin(origin.trim()))
+    .filter(Boolean),
+].map(normalizeOrigin);
 
 // Connect to MongoDB
 connectDB();
@@ -17,19 +28,22 @@ connectDB();
 // Middleware
 app.use(
   cors({
-    origin: [
-      'http://localhost:5173',
-      'http://localhost:3000',
-      process.env.FRONTEND_URL,
-    ].filter(Boolean),
+    origin: (origin, callback) => {
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(normalizeOrigin(origin))) {
+        return callback(null, true);
+      }
+
+      return callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
   })
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Serve uploaded files statically
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Set EJS as view engine for expired link page
 app.set('view engine', 'ejs');

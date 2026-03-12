@@ -3,10 +3,14 @@ const { RESEND_API_KEY, RESEND_FROM, BASE_URL } = require('../config/secrets');
 
 const resend = new Resend(RESEND_API_KEY);
 
-const sendEmail = async (to, downloadLinks, fileNames) => {
+const sendEmail = async (to, downloadLinks, fileNames, shareTitle) => {
   if (!RESEND_API_KEY || !RESEND_FROM) {
     throw new Error('Missing RESEND_API_KEY or RESEND_FROM in environment variables');
   }
+
+  const titleMarkup = shareTitle
+    ? `<p style="margin:0 0 16px;color:#ffffff;font-size:16px;"><strong>Title:</strong> ${shareTitle}</p>`
+    : '';
 
   const linkItems = downloadLinks
     .map(
@@ -24,7 +28,7 @@ const sendEmail = async (to, downloadLinks, fileNames) => {
   await resend.emails.send({
     from: RESEND_FROM,
     to,
-    subject: '📦 Someone shared files with you via Dropee',
+    subject: shareTitle ? `📦 ${shareTitle} via Dropee` : '📦 Someone shared files with you via Dropee',
     html: `
       <!DOCTYPE html>
       <html>
@@ -51,6 +55,7 @@ const sendEmail = async (to, downloadLinks, fileNames) => {
             </div>
             <div class="body">
               <h2>You've received files!</h2>
+              ${titleMarkup}
               <p>Someone shared the following files with you. Click the links below to download them:</p>
               <ul class="links">${linkItems}</ul>
               <div class="note">

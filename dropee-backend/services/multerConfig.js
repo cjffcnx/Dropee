@@ -3,6 +3,7 @@ const path = require('path');
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
+    // Files are written here only briefly before being persisted to GridFS.
     cb(null, './uploads/');
   },
   filename: (req, file, cb) => {

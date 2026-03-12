@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const LinkDisplay = ({ userId, downloadLinks }) => {
+const LinkDisplay = ({ userId, downloadLinks, shareTitle }) => {
   const [copied, setCopied] = useState(false);
   const shareLink = `${window.location.origin}/${userId}`;
 
@@ -29,6 +29,12 @@ const LinkDisplay = ({ userId, downloadLinks }) => {
         <span className="text-success text-lg">✅</span>
         <h3 className="font-semibold text-white">Files uploaded! Share this link:</h3>
       </div>
+
+      {shareTitle && (
+        <p className="mb-3 text-sm text-text-muted">
+          Title: <span className="text-text-primary font-medium">{shareTitle}</span>
+        </p>
+      )}
 
       <div className="flex items-center gap-2 bg-bg-secondary rounded-xl px-4 py-3 border border-gray-700 mb-4">
         <span className="flex-1 text-text-primary text-sm font-mono truncate">{shareLink}</span>

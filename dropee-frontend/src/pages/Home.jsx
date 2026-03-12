@@ -8,11 +8,15 @@ import DropZone from '../components/upload/DropZone';
 import FileList from '../components/upload/FileList';
 import UploadProgress from '../components/upload/UploadProgress';
 import LinkDisplay from '../components/share/LinkDisplay';
+import RecipientInput from '../components/share/RecipientInput';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import Toast from '../components/ui/Toast';
 import Button from '../components/ui/Button';
 import useOfflineQueue, { addToQueue } from '../hooks/useOfflineQueue';
+
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+const PHONE_DIGITS_REGEX = /^\d{6,15}$/;
 
 const Home = () => {
   const navigate = useNavigate();
@@ -25,7 +29,11 @@ const Home = () => {
     uploadResult, setUploadResult,
   } = useStore();
 
-  const [recipient, setRecipient] = useState('');
+  const [shareTitle, setShareTitle] = useState('');
+  const [deliveryMode, setDeliveryMode] = useState('none');
+  const [recipientEmail, setRecipientEmail] = useState('');
+  const [countryCode, setCountryCode] = useState('+977');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [searchId, setSearchId] = useState('');
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
@@ -55,11 +63,32 @@ const Home = () => {
     setFiles(files.filter((_, i) => i !== idx));
   };
 
-  const detectRecipientType = (value) => {
-    if (!value.trim()) return {};
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (emailRegex.test(value)) return { email: value };
-    return { phone: value };
+  const emailError =
+    deliveryMode === 'email' && recipientEmail.trim() && !EMAIL_REGEX.test(recipientEmail.trim())
+      ? 'Enter a valid email address.'
+      : '';
+
+  const getRecipientPayload = () => {
+    if (deliveryMode === 'email') {
+      const email = recipientEmail.trim();
+      if (!email) {
+        throw new Error('Enter an email address or switch notification off.');
+      }
+      if (!EMAIL_REGEX.test(email)) {
+        throw new Error('Enter a valid email address before uploading.');
+      }
+      return { email };
+    }
+
+    if (deliveryMode === 'phone') {
+      const normalizedPhone = phoneNumber.replace(/\D/g, '');
+      if (!PHONE_DIGITS_REGEX.test(normalizedPhone)) {
+        throw new Error('Enter a valid phone number before uploading.');
+      }
+      return { phone: `${countryCode}${normalizedPhone}` };
+    }
+
+    return {};
   };
 
   const handleUpload = async () => {
@@ -68,9 +97,22 @@ const Home = () => {
       return;
     }
 
+    let recipientData;
+    try {
+      recipientData = getRecipientPayload();
+    } catch (error) {
+      addToast({ type: 'warning', message: error.message });
+      return;
+    }
+
     if (!isOnline) {
       // Queue offline
-      await addToQueue({ userId, files, ...detectRecipientType(recipient) });
+      await addToQueue({
+        userId,
+        files,
+        shareTitle: shareTitle.trim(),
+        ...recipientData,
+      });
       addToast({ type: 'info', title: 'Offline Mode', message: 'Files queued. They will upload when you are back online.' });
       return;
     }
@@ -81,9 +123,9 @@ const Home = () => {
 
     const formData = new FormData();
     formData.append('userId', userId);
+    if (shareTitle.trim()) formData.append('shareTitle', shareTitle.trim());
     files.forEach((file) => formData.append('files', file));
 
-    const recipientData = detectRecipientType(recipient);
     if (recipientData.email) formData.append('email', recipientData.email);
     if (recipientData.phone) formData.append('phone', recipientData.phone);
 
@@ -99,7 +141,10 @@ const Home = () => {
       if (response.data.status === 200) {
         setUploadResult(response.data);
         setFiles([]);
-        setRecipient('');
+        setShareTitle('');
+        setDeliveryMode('none');
+        setRecipientEmail('');
+        setPhoneNumber('');
         addToast({ type: 'success', title: 'Upload successful!', message: 'Your files are ready to share.' });
       }
     } catch (err) {
@@ -146,15 +191,21 @@ const Home = () => {
           <UploadProgress progress={progress} />
 
           {/* Recipient input */}
-          <div className="mt-4 space-y-3">
-            <input
-              type="text"
-              value={recipient}
-              onChange={(e) => setRecipient(e.target.value)}
-              placeholder="📧 Email or 📱 phone (optional) — to notify recipient"
-              className="input-field text-sm"
-            />
+          <RecipientInput
+            shareTitle={shareTitle}
+            onShareTitleChange={setShareTitle}
+            deliveryMode={deliveryMode}
+            onDeliveryModeChange={setDeliveryMode}
+            email={recipientEmail}
+            onEmailChange={setRecipientEmail}
+            emailError={emailError}
+            countryCode={countryCode}
+            onCountryCodeChange={setCountryCode}
+            phoneNumber={phoneNumber}
+            onPhoneNumberChange={setPhoneNumber}
+          />
 
+          <div className="mt-4 space-y-3">
             <div className="flex gap-3">
               <Button
                 onClick={handleUpload}
@@ -182,6 +233,7 @@ const Home = () => {
           <LinkDisplay
             userId={uploadResult.userId}
             downloadLinks={uploadResult.downloadLinks}
+            shareTitle={uploadResult.shareTitle}
           />
         )}
 
