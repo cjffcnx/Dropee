@@ -1,10 +1,19 @@
+import { useState } from 'react';
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import useInstallPrompt from '../../hooks/useInstallPrompt';
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
+  const {
+    canInstall,
+    canShowIosHint,
+    isInstalled,
+    promptInstall,
+    showIosHint,
+    dismissIosHint,
+  } = useInstallPrompt();
 
   const navLinks = [
     { to: '/', label: 'Home' },
@@ -16,6 +25,8 @@ const Navbar = () => {
     location.pathname === path
       ? 'text-accent-primary font-semibold'
       : 'text-text-muted hover:text-text-primary';
+
+  const showInstallButton = canInstall || canShowIosHint;
 
   return (
     <nav className="sticky top-0 z-50 bg-bg-secondary/90 backdrop-blur-md border-b border-gray-800">
@@ -41,6 +52,18 @@ const Navbar = () => {
                 {link.label}
               </Link>
             ))}
+            {showInstallButton && (
+              <button
+                type="button"
+                onClick={promptInstall}
+                className="btn-primary py-2 px-4 text-sm"
+              >
+                Install App
+              </button>
+            )}
+            {isInstalled && (
+              <span className="text-xs font-semibold text-green-400">Installed</span>
+            )}
           </div>
 
           {/* Mobile hamburger */}
@@ -74,6 +97,36 @@ const Navbar = () => {
                 {link.label}
               </Link>
             ))}
+            {showInstallButton && (
+              <button
+                type="button"
+                onClick={promptInstall}
+                className="w-full text-left btn-primary py-2 px-4 text-sm mt-2"
+              >
+                Install App
+              </button>
+            )}
+            {isInstalled && (
+              <p className="px-4 pt-2 text-xs font-semibold text-green-400">App installed</p>
+            )}
+          </div>
+        )}
+
+        {showIosHint && (
+          <div className="mb-4 rounded-xl border border-gray-700 bg-bg-card/90 px-4 py-3 text-sm text-text-muted">
+            <div className="flex items-start justify-between gap-4">
+              <p>
+                Install on iPhone: tap the Share button in Safari, then choose <span className="text-text-primary font-semibold">Add to Home Screen</span>.
+              </p>
+              <button
+                type="button"
+                onClick={dismissIosHint}
+                className="text-text-muted hover:text-white"
+                aria-label="Dismiss install help"
+              >
+                ✕
+              </button>
+            </div>
           </div>
         )}
       </div>
