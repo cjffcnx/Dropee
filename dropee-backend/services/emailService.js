@@ -1,15 +1,13 @@
-const nodemailer = require('nodemailer');
-const { EMAIL, EMAIL_PASSWORD, BASE_URL } = require('../config/secrets');
+const { Resend } = require('resend');
+const { RESEND_API_KEY, RESEND_FROM, BASE_URL } = require('../config/secrets');
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: EMAIL,
-    pass: EMAIL_PASSWORD,
-  },
-});
+const resend = new Resend(RESEND_API_KEY);
 
 const sendEmail = async (to, downloadLinks, fileNames) => {
+  if (!RESEND_API_KEY || !RESEND_FROM) {
+    throw new Error('Missing RESEND_API_KEY or RESEND_FROM in environment variables');
+  }
+
   const linkItems = downloadLinks
     .map(
       (link, i) =>
@@ -23,8 +21,8 @@ const sendEmail = async (to, downloadLinks, fileNames) => {
     )
     .join('');
 
-  const mailOptions = {
-    from: `"Dropee 💧" <${EMAIL}>`,
+  await resend.emails.send({
+    from: RESEND_FROM,
     to,
     subject: '📦 Someone shared files with you via Dropee',
     html: `
@@ -67,9 +65,7 @@ const sendEmail = async (to, downloadLinks, fileNames) => {
         </body>
       </html>
     `,
-  };
-
-  await transporter.sendMail(mailOptions);
+  });
 };
 
 module.exports = { sendEmail };
