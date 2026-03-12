@@ -69,7 +69,7 @@ const uploadFiles = async (req, res) => {
           return await newFile.save();
         } catch (error) {
           if (storageId) {
-            await deleteStoredFile(storageId).catch(() => {});
+            await deleteStoredFile(storageId).catch(() => { });
           }
           throw error;
         } finally {

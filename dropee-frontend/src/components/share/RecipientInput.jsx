@@ -43,11 +43,10 @@ const RecipientInput = ({
             key={option.value}
             type="button"
             onClick={() => onDeliveryModeChange(option.value)}
-            className={`rounded-lg px-3 py-2 text-xs font-semibold transition-all ${
-              deliveryMode === option.value
+            className={`rounded-lg px-3 py-2 text-xs font-semibold transition-all ${deliveryMode === option.value
                 ? 'bg-accent-primary text-white'
                 : 'text-text-muted hover:text-white'
-            }`}
+              }`}
           >
             {option.label}
           </button>
