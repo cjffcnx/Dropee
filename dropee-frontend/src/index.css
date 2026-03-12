@@ -1,0 +1,71 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    @apply font-sans;
+    background-color: #0f0f23;
+    color: #eaeaea;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  #root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+@layer components {
+  .glass-card {
+    background: rgba(22, 33, 62, 0.8);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(233, 69, 96, 0.1);
+    border-radius: 16px;
+  }
+
+  .btn-primary {
+    @apply bg-accent-primary hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg;
+    box-shadow: 0 4px 15px rgba(233, 69, 96, 0.3);
+  }
+
+  .btn-secondary {
+    @apply bg-accent-secondary hover:bg-blue-900 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200;
+  }
+
+  .btn-ghost {
+    @apply text-text-muted hover:text-text-primary border border-transparent hover:border-gray-600 py-2 px-4 rounded-lg transition-all duration-200;
+  }
+
+  .input-field {
+    @apply bg-bg-card border border-gray-700 focus:border-accent-primary text-text-primary placeholder-text-muted rounded-xl px-4 py-3 w-full outline-none transition-all duration-200;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #1a1a2e; }
+::-webkit-scrollbar-thumb { background: #e94560; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #c73652; }
+
+/* File drag over glow */
+.drag-over {
+  animation: pulseGlow 1s infinite;
+  border-color: #e94560 !important;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 20px rgba(233, 69, 96, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(233, 69, 96, 0.7); }
+}
